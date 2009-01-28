@@ -4,7 +4,7 @@ require 'rack'
 require 'rack/builder'
 
 module Sinatra
-  VERSION = '0.9.0.2'
+  VERSION = '0.9.0.4'
 
   class Request < Rack::Request
     def user_agent
@@ -253,7 +253,6 @@ module Sinatra
       locals_assigns = locals.to_a.collect { |k,v| "#{k} = locals[:#{k}]" }
       src = "#{locals_assigns.join("\n")}\n#{instance.src}"
       eval src, binding, '(__ERB__)', locals_assigns.length + 1
-      instance.result(binding)
     end
 
     def haml(template, options={})
@@ -661,6 +660,11 @@ module Sinatra
       end
 
     public
+      def helpers(*modules, &block)
+        include *modules unless modules.empty?
+        class_eval(&block) if block
+      end
+
       def development? ; environment == :development ; end
       def test? ; environment == :test ; end
       def production? ; environment == :production ; end
@@ -903,7 +907,7 @@ module Sinatra
     delegate :get, :put, :post, :delete, :head, :template, :layout, :before,
              :error, :not_found, :configures, :configure, :set, :set_option,
              :set_options, :enable, :disable, :use, :development?, :test?,
-             :production?, :use_in_file_templates!
+             :production?, :use_in_file_templates!, :helpers
   end
 
   def self.new(base=Base, options={}, &block)
