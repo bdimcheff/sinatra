@@ -484,4 +484,49 @@ describe "Routing" do
       assert_equal type, response.headers['Content-Type']
     end
   end
+
+  it 'passes a single url param as block parameters when one param is specified' do
+    mock_app {
+      get '/:foo' do |foo|
+        assert_equal 'bar', foo
+      end
+    }
+
+    get '/bar'
+  end
+
+  it 'passes multiple params as block parameters when many are specified' do
+    mock_app {
+      get '/:foo/:bar/:baz' do |foo, bar, baz|
+        assert_equal 'abc', foo
+        assert_equal 'def', bar
+        assert_equal 'ghi', baz
+      end
+    }
+    
+    get '/abc/def/ghi'
+  end
+
+  it 'passes regular expression captures as block parameters' do
+    mock_app {
+      get(/^\/fo(.*)\/ba(.*)/) do |foo, bar|
+        assert_equal 'orooomma', foo
+        assert_equal 'f', bar
+      end
+    }
+
+    get '/foorooomma/baf'
+  end
+
+  it "supports mixing multiple splat params like /*/foo/*/* as block parameters" do
+    mock_app {
+      get '/*/foo/*/*' do |foo, bar, baz|
+        assert_equal 'bar', foo
+        assert_equal 'bling', bar
+        assert_equal 'baz/boom', baz
+      end
+    }
+
+    get '/bar/foo/bling/baz/boom'
+  end
 end
