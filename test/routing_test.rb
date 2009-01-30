@@ -543,4 +543,65 @@ describe "Routing" do
 
     get '/bar/foo/bling/baz/boom'
   end
+
+  it 'throws an ArgumentError if there are too few block parameters' do
+    mock_app {
+      get '/:foo/:bar/:baz' do |foo, bar|
+        'quux'
+      end
+    }
+    
+    assert_raise ArgumentError do
+      get '/a/b/c'     
+    end
+  end
+  
+  it 'raises an ArgumentError if there are too few block parameters when there is only one block parameter' do
+    mock_app {
+      get '/:foo/:bar/:baz' do |foo|
+        'quux'
+      end
+    }
+    
+    assert_raise ArgumentError do
+      get '/a/b/c'     
+    end
+  end
+
+  it 'raises an ArgumentError if there are too many block parameters when there are captures' do
+    mock_app {
+      get '/:foo/:bar' do |foo, bar, baz|
+        'quux'
+      end
+    }
+    
+    assert_raise ArgumentError do
+      get '/a/b'     
+    end
+  end
+  
+  it 'raises an ArgumentError if there are too many block parameters when there are no captures' do
+    mock_app {
+      get '/foo' do |foo|
+        'quux'
+      end
+    }
+    
+    assert_raise ArgumentError do
+      get '/foo'     
+    end
+  end
+
+  it 'succeeds if no block parameters are specified' do
+    mock_app {
+      get '/:foo/:bar' do
+        'quux'
+      end
+    }
+    
+    assert_nothing_raised  do
+      get '/a/b'     
+    end
+    assert_equal 'quux', body
+  end
 end
