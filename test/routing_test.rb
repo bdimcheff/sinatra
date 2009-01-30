@@ -485,6 +485,20 @@ describe "Routing" do
     end
   end
 
+  it 'degrades gracefully when optional accept header is not provided' do
+    mock_app {
+      get '/', :provides => :xml do
+        request.env['HTTP_ACCEPT']
+      end
+      get '/' do
+        'default'
+      end
+    }
+    get '/'
+    assert ok?
+    assert_equal 'default', body
+  end
+
   it 'passes a single url param as block parameters when one param is specified' do
     mock_app {
       get '/:foo' do |foo|
