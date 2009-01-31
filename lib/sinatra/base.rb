@@ -3,6 +3,11 @@ require 'uri'
 require 'rack'
 require 'rack/builder'
 
+# Workaround for Rack 0.9
+class String
+  alias_method :each, :each_line
+end
+
 module Sinatra
   VERSION = '0.9.0.4'
 
