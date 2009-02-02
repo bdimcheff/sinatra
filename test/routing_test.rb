@@ -548,17 +548,19 @@ describe "Routing" do
     assert ok?
   end
 
-  it 'raises an ArgumentError if there are too few block parameters' do
+  it 'does not raise an ArgumentError if there are too few block parameters' do
     mock_app {
       get '/:foo/:bar/:baz' do |foo, bar|
         'quux'
       end
     }
 
-    assert_raise(ArgumentError) { get '/a/b/c' }
+    silence_warnings do
+      assert_nothing_raised { get '/a/b/c' }
+    end
   end
 
-  it 'does not raise an ArgumentError with fewer block params defined then given in route' do
+  it 'does not raise an ArgumentError with one block parameter defined when there are multiple captures' do
     mock_app {
       get '/:foo/:bar/:baz' do |foo|
         'quux'
@@ -588,7 +590,7 @@ describe "Routing" do
     }
 
     silence_warnings do
-      assert_nothing_raised { get '/foo' }
+      assert_raise(ArgumentError) { get '/foo' }
     end
   end
 
