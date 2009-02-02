@@ -3,6 +3,11 @@ require 'uri'
 require 'rack'
 require 'rack/builder'
 
+# Workaround for Rack 0.9
+class String
+  alias_method :each, :each_line
+end
+
 module Sinatra
   VERSION = '0.9.0.4'
 
@@ -514,7 +519,7 @@ module Sinatra
           metadef("#{option}?") { !!__send__(option) }
           metadef("#{option}=") { |val| set(option, Proc.new{val}) }
         elsif value == self && option.respond_to?(:to_hash)
-          option.to_hash.each(&method(:set))
+          option.to_hash.each { |k,v| set(k, v) }
         elsif respond_to?("#{option}=")
           __send__ "#{option}=", value
         else
@@ -552,14 +557,10 @@ module Sinatra
       end
 
       def use_in_file_templates!
-        line = caller.detect do |s|
-          [
-           /lib\/sinatra.*\.rb/,
-           /\(.*\)/,
-           /rubygems\/custom_require\.rb/
-          ].all? { |x| s !~ x }
-        end
-        file = line.sub(/:\d+.*$/, '')
+        ignore = [/lib\/sinatra.*\.rb/, /\(.*\)/, /rubygems\/custom_require\.rb/]
+        file = caller.
+          map  { |line| line.sub(/:\d+.*$/, '') }.
+          find { |line| ignore.all? { |pattern| line !~ pattern } }
         if data = ::IO.read(file).split('__END__')[1]
           data.gsub!(/\r\n/, "\n")
           template = nil
